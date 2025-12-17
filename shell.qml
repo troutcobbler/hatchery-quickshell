@@ -376,7 +376,7 @@ PanelWindow {
             id: month
             anchors.top: parent.top
             anchors.left: parent.left
-            anchors.topMargin: 35
+            anchors.topMargin: 30
             anchors.leftMargin: 40
             color: color1
             font {
@@ -429,7 +429,7 @@ PanelWindow {
             id: year
             anchors.top: parent.top
             anchors.right: parent.right
-            anchors.topMargin: 35
+            anchors.topMargin: 30
             anchors.rightMargin: 40
             color: color1
             font {
