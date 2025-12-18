@@ -241,6 +241,8 @@ PanelWindow {
                 calendar.visible ? calendar.visible = false : calendar.visible = true;
                 grid.month = Qt.formatDateTime(new Date(), "M") - 1;
                 grid.year = Qt.formatDateTime(new Date(), "yyyy");
+                grid.year++;
+                grid.year--;
             }
         }
     }
@@ -366,8 +368,8 @@ PanelWindow {
             MouseArea {
                 anchors.fill: parent
                 onClicked: {
-                    grid.month === 0 ? grid.year = grid.year - 1 : grid.year = grid.year;
-                    grid.month === 0 ? grid.month = 11 : grid.month = grid.month - 1;
+                    grid.month === 0 ? grid.year-- : grid.year;
+                    grid.month === 0 ? grid.month = 11 : grid.month--;
                 }
             }
         }
@@ -401,8 +403,8 @@ PanelWindow {
             MouseArea {
                 anchors.fill: parent
                 onClicked: {
-                    grid.month === 11 ? grid.year = grid.year + 1 : grid.year = grid.year;
-                    grid.month === 11 ? grid.month = 0 : grid.month = grid.month + 1;
+                    grid.month === 11 ? grid.year++ : grid.year;
+                    grid.month === 11 ? grid.month = 0 : grid.month++;
                 }
             }
         }
@@ -421,7 +423,7 @@ PanelWindow {
             text: icons[18]
             MouseArea {
                 anchors.fill: parent
-                onClicked: grid.year = grid.year - 1
+                onClicked: grid.year--
             }
         }
 
@@ -453,7 +455,7 @@ PanelWindow {
             text: icons[19]
             MouseArea {
                 anchors.fill: parent
-                onClicked: grid.year = grid.year + 1
+                onClicked: grid.year++
             }
         }
 
