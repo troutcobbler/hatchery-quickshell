@@ -158,80 +158,127 @@ PanelWindow {
                 }
             }
 
-            Text {
-                id: brightness
-                text: icons[11]
+            // Brightness Widget
+            Column {
+                spacing: 5
                 anchors.horizontalCenter: parent.horizontalCenter
-                color: color3
-                font {
-                    family: fontFamily
-                    pixelSize: fontSize
-                }
-                MouseArea {
-                    anchors.fill: parent
-                    //onClicked: Quickshell.execDetached(suspendCmd)
-                }
-            }
-
-            Rectangle {
-                id: volumeWidget
                 width: tray.width
-                height: childrenRect.height
-                color: color0
+
                 HoverHandler {
-                    id: volumeHoverHandler
+                    id: brightnessHoverHandler
                 }
-                Column {
-                    spacing: 5
+
+                Slider {
+                    id: brightnessSlider
+                    visible: brightnessHoverHandler.hovered ? true : false
+                    value: brightnessctl.text / 255
+                    orientation: Qt.Vertical
                     anchors.horizontalCenter: parent.horizontalCenter
 
-                    Slider {
-                        id: volumeSlider
-                        visible: volumeHoverHandler.hovered ? true : false
-                        value: Pipewire.defaultAudioSink?.audio.volume ?? 0
-                        orientation: Qt.Vertical
+                    background: Rectangle {
+                        implicitHeight: 80
+                        implicitWidth: 10
+                        height: parent.availableHeight
+                        width: implicitWidth
                         anchors.horizontalCenter: parent.horizontalCenter
+                        radius: 5
+                        color: colorBg
 
-                        background: Rectangle {
-                            implicitHeight: 80
-                            implicitWidth: 10
-                            height: parent.availableHeight
-                            width: implicitWidth
+                        Rectangle {
+                            height: parent.height * brightnessSlider.value
+                            width: parent.width
                             anchors.horizontalCenter: parent.horizontalCenter
+                            anchors.bottom: parent.bottom
+                            color: color3
                             radius: 5
-                            color: colorBg
-
-                            Rectangle {
-                                height: parent.height * (Pipewire.defaultAudioSink?.audio.volume ?? 0)
-                                width: parent.width
-                                anchors.horizontalCenter: parent.horizontalCenter
-                                anchors.bottom: parent.bottom
-                                color: color2
-                                radius: 5
-                            }
-                        }
-
-                        handle {
-                            visible: false
-                        }
-                        onMoved: {
-                            Pipewire.defaultAudioSink.audio.volume = volumeSlider.value;
                         }
                     }
 
-                    Text {
-                        id: volume
-                        text: icons[12]
+                    handle {
+                        visible: false
+                    }
+                    onMoved: {
+                        Quickshell.execDetached(["brightnessctl", "s", Math.floor(brightnessSlider.value * 100) + "%"]);
+                    }
+                }
+
+                Process {
+                    id: brightnessctl
+                    running: brightnessHoverHandler.hovered ? true : true
+                    command: ["brightnessctl", "g"]
+                    stdout: StdioCollector {
+                        onStreamFinished: brightnessSlider.value = text / 255
+                    }
+                }
+
+                Text {
+                    id: brightness
+                    text: icons[11]
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    color: color3
+                    font {
+                        family: fontFamily
+                        pixelSize: fontSize
+                    }
+                }
+            }
+
+            // Volume Widget
+            Column {
+                width: tray.width
+                spacing: 5
+                anchors.horizontalCenter: parent.horizontalCenter
+
+                HoverHandler {
+                    id: volumeHoverHandler
+                }
+
+                Slider {
+                    id: volumeSlider
+                    visible: volumeHoverHandler.hovered ? true : false
+                    value: Pipewire.defaultAudioSink?.audio.volume ?? 0
+                    orientation: Qt.Vertical
+                    anchors.horizontalCenter: parent.horizontalCenter
+
+                    background: Rectangle {
+                        implicitHeight: 80
+                        implicitWidth: 10
+                        height: parent.availableHeight
+                        width: implicitWidth
                         anchors.horizontalCenter: parent.horizontalCenter
-                        color: color2
-                        font {
-                            family: fontFamily
-                            pixelSize: fontSize
+                        radius: 5
+                        color: colorBg
+
+                        Rectangle {
+                            height: parent.height * (Pipewire.defaultAudioSink?.audio.volume ?? 0)
+                            width: parent.width
+                            anchors.horizontalCenter: parent.horizontalCenter
+                            anchors.bottom: parent.bottom
+                            color: color2
+                            radius: 5
                         }
-                        MouseArea {
-                            anchors.fill: parent
-                            onClicked: Quickshell.execDetached(volumeCmd)
-                        }
+                    }
+
+                    handle {
+                        visible: false
+                    }
+                    onMoved: {
+                        Pipewire.defaultAudioSink.audio.volume = volumeSlider.value;
+                    }
+                }
+
+                Text {
+                    id: volume
+                    text: icons[12]
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    color: color2
+                    font {
+                        family: fontFamily
+                        pixelSize: fontSize
+                    }
+                    MouseArea {
+                        anchors.fill: parent
+                        onClicked: Quickshell.execDetached(volumeCmd)
                     }
                 }
             }
@@ -309,7 +356,7 @@ PanelWindow {
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.bottom: parent.bottom
         anchors.bottomMargin: 5
-
+        width: parent.width
         HoverHandler {
             id: powerHoverHandler
         }
