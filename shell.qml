@@ -39,6 +39,7 @@ PanelWindow {
 
     // Commands
     property list<string> launcherCmd: ["rofi", "-show", "drun"]
+    property list<string> wifiCmd: ["xfce4-terminal", "-e", "nmtui"]
     property list<string> volumeCmd: ["pavucontrol"]
     property list<string> suspendCmd: ["swaylock", "-f", "-c", "000000"]
     property list<string> rebootCmd: ["swaylock", "-f", "-c", "000000"]
@@ -128,14 +129,27 @@ PanelWindow {
             spacing: 5
             anchors.horizontalCenter: parent.horizontalCenter
 
+            // Battery
             Text {
                 id: battery
-                text: icons[8]
+                text: checkBattery.stdout.text.trim() <= 30 ? icons[7] : icons[8]
                 anchors.horizontalCenter: parent.horizontalCenter
-                color: color4
+                color: checkBattery.stdout.text.trim() <= 30 ? color1 : color4
                 font {
                     family: fontFamily
                     pixelSize: fontSize
+                }
+                Process {
+                    id: checkBattery
+                    running: true
+                    command: ["sh", "-c", `cat /sys/class/power_supply/BAT0/capacity`]
+                    stdout: StdioCollector {}
+                }
+                Timer {
+                    interval: 1000
+                    running: true
+                    repeat: true
+                    onTriggered: checkConnection.running = true
                 }
             }
 
@@ -151,7 +165,7 @@ PanelWindow {
                 }
                 MouseArea {
                     anchors.fill: parent
-                    onClicked: Quickshell.execDetached(["xfce4-terminal", "-e", "nmtui"])
+                    onClicked: Quickshell.execDetached(wifiCmd)
                 }
                 Process {
                     id: checkConnection
