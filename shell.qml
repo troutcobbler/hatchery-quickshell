@@ -137,15 +137,12 @@ PanelWindow {
                     family: fontFamily
                     pixelSize: fontSize
                 }
-                MouseArea {
-                    anchors.fill: parent
-                    //onClicked: Quickshell.execDetached(suspendCmd)
-                }
             }
 
+            // Wifi
             Text {
                 id: wifi
-                text: icons[10]
+                text: checkConnection.stdout.text.trim() === "up" ? icons[10] : icons[9]
                 anchors.horizontalCenter: parent.horizontalCenter
                 color: color5
                 font {
@@ -154,11 +151,23 @@ PanelWindow {
                 }
                 MouseArea {
                     anchors.fill: parent
-                    //onClicked: Quickshell.execDetached(suspendCmd)
+                    onClicked: Quickshell.execDetached(["xfce4-terminal", "-e", "nmtui"])
+                }
+                Process {
+                    id: checkConnection
+                    running: true
+                    command: ["sh", "-c", `cat /sys/class/net/w*/operstate`]
+                    stdout: StdioCollector {}
+                }
+                Timer {
+                    interval: 1000
+                    running: true
+                    repeat: true
+                    onTriggered: checkConnection.running = true
                 }
             }
 
-            // Brightness Widget
+            // Brightness
             Column {
                 spacing: 5
                 anchors.horizontalCenter: parent.horizontalCenter
@@ -223,7 +232,7 @@ PanelWindow {
                 }
             }
 
-            // Volume Widget
+            // Volume
             Column {
                 width: tray.width
                 spacing: 5
