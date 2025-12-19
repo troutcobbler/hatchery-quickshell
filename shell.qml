@@ -41,11 +41,14 @@ PanelWindow {
     property list<string> launcherCmd: ["rofi", "-show", "drun"]
     property list<string> wifiCmd: ["xfce4-terminal", "-e", "nmtui"]
     property list<string> volumeCmd: ["pavucontrol"]
-    property list<string> suspendCmd: ["swaylock", "-f", "-c", "000000"]
-    property list<string> rebootCmd: ["swaylock", "-f", "-c", "000000"]
-    property list<string> logoutCmd: ["swaylock", "-f", "-c", "000000"]
+    property list<string> suspendCmd: ["sh", "-c", `systemctl suspend && swaylock -f -c 000000`]
+    property list<string> rebootCmd: ["systemctl", "reboot"]
+    property list<string> logoutCmd: ["hyprctl", "dispatch", "exit"]
     property list<string> lockCmd: ["swaylock", "-f", "-c", "000000"]
-    property list<string> poweroffCmd: ["swaylock", "-f", "-c", "000000"]
+    property list<string> poweroffCmd: ["systemctl", "poweroff"]
+
+    // Max Brightness setting (get from brightnessctl in terminal)
+    property int maxBrightness: 255
 
     // Bind the pipewire node so its volume will be tracked
     PwObjectTracker {
@@ -149,14 +152,14 @@ PanelWindow {
                     interval: 1000
                     running: true
                     repeat: true
-                    onTriggered: checkConnection.running = true
+                    onTriggered: checkBattery.running = true
                 }
             }
 
             // Wifi
             Text {
                 id: wifi
-                text: checkConnection.stdout.text.trim() === "up" ? icons[10] : icons[9]
+                text: checkWifi.stdout.text.trim() === "up" ? icons[10] : icons[9]
                 anchors.horizontalCenter: parent.horizontalCenter
                 color: color5
                 font {
@@ -168,7 +171,7 @@ PanelWindow {
                     onClicked: Quickshell.execDetached(wifiCmd)
                 }
                 Process {
-                    id: checkConnection
+                    id: checkWifi
                     running: true
                     command: ["sh", "-c", `cat /sys/class/net/w*/operstate`]
                     stdout: StdioCollector {}
@@ -177,7 +180,7 @@ PanelWindow {
                     interval: 1000
                     running: true
                     repeat: true
-                    onTriggered: checkConnection.running = true
+                    onTriggered: checkWifi.running = true
                 }
             }
 
@@ -194,7 +197,7 @@ PanelWindow {
                 Slider {
                     id: brightnessSlider
                     visible: brightnessHoverHandler.hovered ? true : false
-                    value: brightnessctl.text / 255
+                    value: checkBrightness.text / maxBrightness
                     orientation: Qt.Vertical
                     anchors.horizontalCenter: parent.horizontalCenter
 
@@ -226,11 +229,11 @@ PanelWindow {
                 }
 
                 Process {
-                    id: brightnessctl
+                    id: checkBrightness
                     running: brightnessHoverHandler.hovered ? true : true
                     command: ["brightnessctl", "g"]
                     stdout: StdioCollector {
-                        onStreamFinished: brightnessSlider.value = text / 255
+                        onStreamFinished: brightnessSlider.value = text / maxBrightness
                     }
                 }
 
@@ -396,7 +399,7 @@ PanelWindow {
             }
             MouseArea {
                 anchors.fill: parent
-                onClicked: Quickshell.execDetached(suspendCmd)
+                onClicked: suspendPopup.visible ? suspendPopup.visible = false : suspendPopup.visible = true
             }
         }
 
@@ -412,7 +415,7 @@ PanelWindow {
             }
             MouseArea {
                 anchors.fill: parent
-                onClicked: Quickshell.execDetached(rebootCmd)
+                onClicked: rebootPopup.visible ? rebootPopup.visible = false : rebootPopup.visible = true
             }
         }
 
@@ -428,7 +431,7 @@ PanelWindow {
             }
             MouseArea {
                 anchors.fill: parent
-                onClicked: Quickshell.execDetached(logoutCmd)
+                onClicked: logoutPopup.visible ? logoutPopup.visible = false : logoutPopup.visible = true
             }
         }
 
@@ -459,7 +462,7 @@ PanelWindow {
             }
             MouseArea {
                 anchors.fill: parent
-                onClicked: Quickshell.execDetached(poweroffCmd)
+                onClicked: poweroffPopup.visible ? poweroffPopup.visible = false : poweroffPopup.visible = true
             }
         }
     }
@@ -625,6 +628,322 @@ PanelWindow {
                 }
                 color: model.today ? color1 : (model.month === grid.month ? colorFg : color8)
                 required property var model
+            }
+        }
+    }
+
+    // Suspend
+    PopupWindow {
+        id: suspendPopup
+        anchor.window: root
+        anchor.rect.x: screen.width / 2 - (width / 2)
+        anchor.rect.y: screen.height / 2 - (height / 2)
+        implicitWidth: 480
+        implicitHeight: 129
+        visible: false
+        color: colorBg
+
+        Text {
+            anchors.top: parent.top
+            anchors.horizontalCenter: parent.horizontalCenter
+            anchors.topMargin: 25
+            color: colorFg
+            font {
+                family: fontFamily
+                pixelSize: fontSize
+            }
+            text: "Suspend this computer?"
+        }
+
+        Rectangle {
+            anchors.bottom: parent.bottom
+            anchors.left: parent.left
+            anchors.bottomMargin: 15
+            anchors.leftMargin: 35
+            width: 190
+            height: 35
+            radius: 5
+            color: color0
+
+            Text {
+                anchors.verticalCenter: parent.verticalCenter
+                anchors.horizontalCenter: parent.horizontalCenter
+                color: colorFg
+                font {
+                    family: fontFamily
+                    pixelSize: fontSize
+                }
+                text: "CANCEL"
+            }
+            MouseArea {
+                anchors.fill: parent
+                onClicked: suspendPopup.visible = false
+            }
+        }
+
+        Rectangle {
+            anchors.bottom: parent.bottom
+            anchors.right: parent.right
+            anchors.bottomMargin: 15
+            anchors.rightMargin: 35
+            width: 190
+            height: 35
+            radius: 5
+            color: color0
+
+            Text {
+                anchors.verticalCenter: parent.verticalCenter
+                anchors.horizontalCenter: parent.horizontalCenter
+                color: color2
+                font {
+                    family: fontFamily
+                    pixelSize: fontSize
+                }
+                text: "YES"
+            }
+            MouseArea {
+                anchors.fill: parent
+                onClicked: {
+                    suspendPopup.visible = false;
+                    Quickshell.execDetached(suspendCmd);
+                }
+            }
+        }
+    }
+
+    // Reboot
+    PopupWindow {
+        id: rebootPopup
+        anchor.window: root
+        anchor.rect.x: screen.width / 2 - (width / 2)
+        anchor.rect.y: screen.height / 2 - (height / 2)
+        implicitWidth: 480
+        implicitHeight: 120
+        visible: false
+        color: colorBg
+
+        Text {
+            anchors.top: parent.top
+            anchors.horizontalCenter: parent.horizontalCenter
+            anchors.topMargin: 25
+            color: colorFg
+            font {
+                family: fontFamily
+                pixelSize: fontSize
+            }
+            text: "Reboot this computer?"
+        }
+
+        Rectangle {
+            anchors.bottom: parent.bottom
+            anchors.left: parent.left
+            anchors.bottomMargin: 15
+            anchors.leftMargin: 35
+            width: 190
+            height: 35
+            radius: 5
+            color: color0
+
+            Text {
+                anchors.verticalCenter: parent.verticalCenter
+                anchors.horizontalCenter: parent.horizontalCenter
+                color: colorFg
+                font {
+                    family: fontFamily
+                    pixelSize: fontSize
+                }
+                text: "CANCEL"
+            }
+            MouseArea {
+                anchors.fill: parent
+                onClicked: rebootPopup.visible = false
+            }
+        }
+
+        Rectangle {
+            anchors.bottom: parent.bottom
+            anchors.right: parent.right
+            anchors.bottomMargin: 15
+            anchors.rightMargin: 35
+            width: 190
+            height: 35
+            radius: 5
+            color: color0
+
+            Text {
+                anchors.verticalCenter: parent.verticalCenter
+                anchors.horizontalCenter: parent.horizontalCenter
+                color: color3
+                font {
+                    family: fontFamily
+                    pixelSize: fontSize
+                }
+                text: "YES"
+            }
+            MouseArea {
+                anchors.fill: parent
+                onClicked: {
+                    rebootPopup.visible = false;
+                    Quickshell.execDetached(rebootCmd);
+                }
+            }
+        }
+    }
+
+    // Logout
+    PopupWindow {
+        id: logoutPopup
+        anchor.window: root
+        anchor.rect.x: screen.width / 2 - (width / 2)
+        anchor.rect.y: screen.height / 2 - (height / 2)
+        implicitWidth: 480
+        implicitHeight: 120
+        visible: false
+        color: colorBg
+
+        Text {
+            anchors.top: parent.top
+            anchors.horizontalCenter: parent.horizontalCenter
+            anchors.topMargin: 25
+            color: colorFg
+            font {
+                family: fontFamily
+                pixelSize: fontSize
+            }
+            text: "Logout of this computer?"
+        }
+
+        Rectangle {
+            anchors.bottom: parent.bottom
+            anchors.left: parent.left
+            anchors.bottomMargin: 15
+            anchors.leftMargin: 35
+            width: 190
+            height: 35
+            radius: 5
+            color: color0
+
+            Text {
+                anchors.verticalCenter: parent.verticalCenter
+                anchors.horizontalCenter: parent.horizontalCenter
+                color: colorFg
+                font {
+                    family: fontFamily
+                    pixelSize: fontSize
+                }
+                text: "CANCEL"
+            }
+            MouseArea {
+                anchors.fill: parent
+                onClicked: logoutPopup.visible = false
+            }
+        }
+
+        Rectangle {
+            anchors.bottom: parent.bottom
+            anchors.right: parent.right
+            anchors.bottomMargin: 15
+            anchors.rightMargin: 35
+            width: 190
+            height: 35
+            radius: 5
+            color: color0
+
+            Text {
+                anchors.verticalCenter: parent.verticalCenter
+                anchors.horizontalCenter: parent.horizontalCenter
+                color: color5
+                font {
+                    family: fontFamily
+                    pixelSize: fontSize
+                }
+                text: "YES"
+            }
+            MouseArea {
+                anchors.fill: parent
+                onClicked: {
+                    logoutPopup.visible = false;
+                    Quickshell.execDetached(logoutCmd);
+                }
+            }
+        }
+    }
+
+    // Poweroff
+    PopupWindow {
+        id: poweroffPopup
+        anchor.window: root
+        anchor.rect.x: screen.width / 2 - (width / 2)
+        anchor.rect.y: screen.height / 2 - (height / 2)
+        implicitWidth: 480
+        implicitHeight: 120
+        visible: false
+        color: colorBg
+
+        Text {
+            anchors.top: parent.top
+            anchors.horizontalCenter: parent.horizontalCenter
+            anchors.topMargin: 25
+            color: colorFg
+            font {
+                family: fontFamily
+                pixelSize: fontSize
+            }
+            text: "Poweroff this computer?"
+        }
+
+        Rectangle {
+            anchors.bottom: parent.bottom
+            anchors.left: parent.left
+            anchors.bottomMargin: 15
+            anchors.leftMargin: 35
+            width: 190
+            height: 35
+            radius: 5
+            color: color0
+
+            Text {
+                anchors.verticalCenter: parent.verticalCenter
+                anchors.horizontalCenter: parent.horizontalCenter
+                color: colorFg
+                font {
+                    family: fontFamily
+                    pixelSize: fontSize
+                }
+                text: "CANCEL"
+            }
+            MouseArea {
+                anchors.fill: parent
+                onClicked: poweroffPopup.visible = false
+            }
+        }
+
+        Rectangle {
+            anchors.bottom: parent.bottom
+            anchors.right: parent.right
+            anchors.bottomMargin: 15
+            anchors.rightMargin: 35
+            width: 190
+            height: 35
+            radius: 5
+            color: color0
+
+            Text {
+                anchors.verticalCenter: parent.verticalCenter
+                anchors.horizontalCenter: parent.horizontalCenter
+                color: color1
+                font {
+                    family: fontFamily
+                    pixelSize: fontSize
+                }
+                text: "YES"
+            }
+            MouseArea {
+                anchors.fill: parent
+                onClicked: {
+                    poweroffPopup.visible = false;
+                    Quickshell.execDetached(poweroffCmd);
+                }
             }
         }
     }
