@@ -47,6 +47,9 @@ PanelWindow {
     property list<string> lockCmd: ["swaylock", "-f", "-c", "000000"]
     property list<string> poweroffCmd: ["systemctl", "poweroff"]
 
+    // Workstation type (set to true or false if it's a laptop)
+    property bool laptop: true
+
     // Max Brightness setting (get from brightnessctl in terminal)
     property int maxBrightness: 255
 
@@ -135,9 +138,9 @@ PanelWindow {
             // Battery
             Text {
                 id: battery
-                text: checkBattery.stdout.text.trim() <= 30 ? icons[7] : icons[8]
+                text: laptop ? (checkBattery.stdout.text.trim() <= 30 ? icons[7] : icons[8]) : icons[8]
                 anchors.horizontalCenter: parent.horizontalCenter
-                color: checkBattery.stdout.text.trim() <= 30 ? color1 : color4
+                color: laptop ? (checkBattery.stdout.text.trim() <= 30 ? color1 : color4) : color4
                 font {
                     family: fontFamily
                     pixelSize: fontSize
