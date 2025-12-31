@@ -48,7 +48,7 @@ PanelWindow {
     property list<string> poweroffCmd: ["systemctl", "poweroff"]
 
     // Workstation type (set to true or false if it's a laptop)
-    property bool laptop: true
+    property bool laptop: false
 
     // Max Brightness setting (get from brightnessctl in terminal)
     property int maxBrightness: 255
@@ -147,15 +147,15 @@ PanelWindow {
                 }
                 Process {
                     id: checkBattery
-                    running: true
+                    running: laptop ? true : false
                     command: ["sh", "-c", `cat /sys/class/power_supply/BAT0/capacity`]
                     stdout: StdioCollector {}
                 }
                 Timer {
                     interval: 1000
-                    running: true
-                    repeat: true
-                    onTriggered: checkBattery.running = true
+                    running: laptop ? true : false
+                    repeat: laptop ? true : false
+                    onTriggered: laptop ? checkBattery.running = true : checkBattery.running = false
                 }
             }
 
@@ -199,7 +199,7 @@ PanelWindow {
 
                 Slider {
                     id: brightnessSlider
-                    visible: brightnessHoverHandler.hovered ? true : false
+                    visible: laptop ? (brightnessHoverHandler.hovered ? true : false) : false
                     value: checkBrightness.text / maxBrightness
                     orientation: Qt.Vertical
                     anchors.horizontalCenter: parent.horizontalCenter
@@ -233,7 +233,7 @@ PanelWindow {
 
                 Process {
                     id: checkBrightness
-                    running: brightnessHoverHandler.hovered ? true : true
+                    running: laptop ? (brightnessHoverHandler.hovered ? true : true) : false
                     command: ["brightnessctl", "g"]
                     stdout: StdioCollector {
                         onStreamFinished: brightnessSlider.value = text / maxBrightness
