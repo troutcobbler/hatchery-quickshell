@@ -658,7 +658,6 @@ ShellRoot {
                         pixelSize: fontSize
                     }
                     color: colorFg
-                    text: tray.y + battery.parent.y
                 }
             }
         }
@@ -684,7 +683,6 @@ ShellRoot {
                         pixelSize: fontSize
                     }
                     color: colorFg
-                    text: tray.y + wifi.parent.y
                 }
             }
             Process {
