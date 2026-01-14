@@ -58,6 +58,151 @@ ShellRoot {
         objects: [Pipewire.defaultAudioSink]
     }
 
+    // Desktop widgets
+    PanelWindow {
+        id: background
+        WlrLayershell.layer: WlrLayer.Background
+
+        anchors {
+            top: true
+            bottom: true
+            left: true
+            right: true
+        }
+
+        // Desktop background color
+        Rectangle {
+            width: parent.width
+            height: parent.height
+            color: colorBg
+        }
+
+        // Logo
+        Image {
+            id: logo
+            anchors.verticalCenter: parent.verticalCenter
+            anchors.horizontalCenter: parent.horizontalCenter
+            anchors.horizontalCenterOffset: -bar.width / 2
+            source: "root:hatchery.svg"
+            width: 350
+            height: 65
+            visible: true
+        }
+
+        //Wonky (conky replacement)
+        Rectangle {
+            id: wonky
+            anchors.top: parent.top
+            anchors.right: parent.right
+            anchors.topMargin: 60
+            anchors.rightMargin: 20
+            width: childrenRect.width
+            height: childrenRect.height
+            color: colorBg
+            Column {
+                Row {
+                    Text {
+                        font {
+                            family: "hack"
+                            pixelSize: 16
+                        }
+                        color: "#808080"
+                        text: "BASIC NAVIGATION"
+                    }
+                }
+                Row {
+                    Text {
+                        font {
+                            family: "hack"
+                            pixelSize: 16
+                        }
+                        color: "#808080"
+                        text: " "
+                    }
+                }
+                Row {
+                    Text {
+                        font {
+                            family: "hack"
+                            pixelSize: 16
+                        }
+                        color: "#808080"
+                        text: "ALT+P            run command"
+                    }
+                }
+                Row {
+                    Text {
+                        font {
+                            family: "hack"
+                            pixelSize: 16
+                        }
+                        color: "#808080"
+                        text: "ALT+SHIFT+ENTER  open terminal"
+                    }
+                }
+                Row {
+                    Text {
+                        font {
+                            family: "hack"
+                            pixelSize: 16
+                        }
+                        color: "#808080"
+                        text: "ALT+Q            close window"
+                    }
+                }
+                Row {
+                    Text {
+                        font {
+                            family: "hack"
+                            pixelSize: 16
+                        }
+                        color: "#808080"
+                        text: "ALT+1-6          switch between workspaces"
+                    }
+                }
+                Row {
+                    Text {
+                        font {
+                            family: "hack"
+                            pixelSize: 16
+                        }
+                        color: "#808080"
+                        text: "ALT+SHIFT+1-6    move window to workspace"
+                    }
+                }
+                Row {
+                    Text {
+                        font {
+                            family: "hack"
+                            pixelSize: 16
+                        }
+                        color: "#808080"
+                        text: "ALT+F12          show/hide this dialog"
+                    }
+                }
+                Row {
+                    Text {
+                        font {
+                            family: "hack"
+                            pixelSize: 16
+                        }
+                        color: "#808080"
+                        text: "ALT+SHIFT+Q      logout"
+                    }
+                }
+            }
+        }
+
+        IpcHandler {
+            target: "wonky"
+
+            function toggleWonky(): bool {
+                wonky.visible = wonky.visible ? false : true;
+            }
+        }
+    }
+
+    // Vertical Bar
     PanelWindow {
         id: bar
 
@@ -161,7 +306,7 @@ ShellRoot {
                             running: laptop ? true : false
                             command: ["sh", "-c", `cat /sys/class/power_supply/BAT0/capacity`]
                             stdout: StdioCollector {
-                                onStreamFinished: batteryTooltipText.text = "Battery: " + text + "%"
+                                onStreamFinished: batteryTooltipText.text = "Battery: " + text.trim() + "%"
                             }
                         }
                         Timer {
@@ -489,6 +634,72 @@ ShellRoot {
                     anchors.fill: parent
                     onClicked: poweroffPopup.visible ? poweroffPopup.visible = false : poweroffPopup.visible = true
                 }
+            }
+        }
+
+        // Battery tooltip
+        PopupWindow {
+            anchor.window: bar
+            anchor.rect.x: bar.width + 5
+            anchor.rect.y: tray.y + battery.parent.y
+            implicitWidth: batteryTooltip.width
+            implicitHeight: batteryTooltip.height
+            visible: laptop ? (batteryHoverHandler.hovered ? true : false) : false
+            color: colorBg
+            Rectangle {
+                id: batteryTooltip
+                color: color0
+                width: childrenRect.width
+                height: childrenRect.height
+                Text {
+                    id: batteryTooltipText
+                    font {
+                        family: fontFamily
+                        pixelSize: fontSize
+                    }
+                    color: colorFg
+                    text: tray.y + battery.parent.y
+                }
+            }
+        }
+
+        // Wifi tooltip
+        PopupWindow {
+            anchor.window: bar
+            anchor.rect.x: bar.width + 5
+            anchor.rect.y: tray.y + wifi.parent.y
+            implicitWidth: wifiTooltip.width
+            implicitHeight: wifiTooltip.height
+            visible: checkWifi.stdout.text.trim() === "up" ? (wifiHoverHandler.hovered ? true : false) : false
+            color: colorBg
+            Rectangle {
+                id: wifiTooltip
+                color: color0
+                width: childrenRect.width
+                height: childrenRect.height
+                Text {
+                    id: wifiTooltipText
+                    font {
+                        family: fontFamily
+                        pixelSize: fontSize
+                    }
+                    color: colorFg
+                    text: tray.y + wifi.parent.y
+                }
+            }
+            Process {
+                id: getSSID
+                running: true
+                command: ["sh", "-c", `nmcli -t -f active,ssid dev wifi | grep '^yes' | cut -d: -f2`]
+                stdout: StdioCollector {
+                    onStreamFinished: wifiTooltipText.text = "Network: " + text
+                }
+            }
+            Timer {
+                interval: 1000
+                running: true
+                repeat: true
+                onTriggered: getSSID.running = true
             }
         }
 
@@ -971,216 +1182,6 @@ ShellRoot {
                     }
                 }
             }
-        }
-    }
-
-    // Desktop widgets
-    PanelWindow {
-        id: background
-        WlrLayershell.layer: WlrLayer.Background
-
-        anchors {
-            top: true
-            bottom: true
-            left: true
-            right: true
-        }
-
-        // Desktop background color
-        Rectangle {
-            width: parent.width
-            height: parent.height
-            color: colorBg
-        }
-
-        // Logo
-        Image {
-            id: logo
-            anchors.verticalCenter: parent.verticalCenter
-            anchors.horizontalCenter: parent.horizontalCenter
-            anchors.horizontalCenterOffset: -bar.width / 2
-            source: "root:hatchery.svg"
-            width: 350
-            height: 65
-            visible: true
-        }
-
-        //Wonky (conky replacement)
-        Rectangle {
-            id: wonky
-            anchors.top: parent.top
-            anchors.right: parent.right
-            anchors.topMargin: 60
-            anchors.rightMargin: 20
-            width: childrenRect.width
-            height: childrenRect.height
-            color: colorBg
-            Column {
-                Row {
-                    Text {
-                        font {
-                            family: "hack"
-                            pixelSize: 16
-                        }
-                        color: "#808080"
-                        text: "BASIC NAVIGATION"
-                    }
-                }
-                Row {
-                    Text {
-                        font {
-                            family: "hack"
-                            pixelSize: 16
-                        }
-                        color: "#808080"
-                        text: " "
-                    }
-                }
-                Row {
-                    Text {
-                        font {
-                            family: "hack"
-                            pixelSize: 16
-                        }
-                        color: "#808080"
-                        text: "ALT+P            run command"
-                    }
-                }
-                Row {
-                    Text {
-                        font {
-                            family: "hack"
-                            pixelSize: 16
-                        }
-                        color: "#808080"
-                        text: "ALT+SHIFT+ENTER  open terminal"
-                    }
-                }
-                Row {
-                    Text {
-                        font {
-                            family: "hack"
-                            pixelSize: 16
-                        }
-                        color: "#808080"
-                        text: "ALT+Q            close window"
-                    }
-                }
-                Row {
-                    Text {
-                        font {
-                            family: "hack"
-                            pixelSize: 16
-                        }
-                        color: "#808080"
-                        text: "ALT+1-6          switch between workspaces"
-                    }
-                }
-                Row {
-                    Text {
-                        font {
-                            family: "hack"
-                            pixelSize: 16
-                        }
-                        color: "#808080"
-                        text: "ALT+SHIFT+1-6    move window to workspace"
-                    }
-                }
-                Row {
-                    Text {
-                        font {
-                            family: "hack"
-                            pixelSize: 16
-                        }
-                        color: "#808080"
-                        text: "ALT+F12          show/hide this dialog"
-                    }
-                }
-                Row {
-                    Text {
-                        font {
-                            family: "hack"
-                            pixelSize: 16
-                        }
-                        color: "#808080"
-                        text: "ALT+SHIFT+Q      logout"
-                    }
-                }
-            }
-        }
-
-        IpcHandler {
-            target: "wonky"
-
-            function toggleWonky(): bool {
-                wonky.visible = wonky.visible ? false : true;
-            }
-        }
-    }
-
-    // Battery tooltip
-    PopupWindow {
-        anchor.window: bar
-        anchor.rect.x: bar.width + 5
-        anchor.rect.y: tray.y + battery.parent.y
-        implicitWidth: batteryTooltip.width
-        implicitHeight: batteryTooltip.height
-        visible: laptop ? (batteryHoverHandler.hovered ? true : false) : false
-        color: colorBg
-        Rectangle {
-            id: batteryTooltip
-            color: color0
-            width: childrenRect.width
-            height: childrenRect.height
-            Text {
-                id: batteryTooltipText
-                font {
-                    family: fontFamily
-                    pixelSize: fontSize
-                }
-                color: colorFg
-                text: tray.y + battery.parent.y
-            }
-        }
-    }
-
-    // Wifi tooltip
-    PopupWindow {
-        anchor.window: bar
-        anchor.rect.x: bar.width + 5
-        anchor.rect.y: tray.y + wifi.parent.y
-        implicitWidth: wifiTooltip.width
-        implicitHeight: wifiTooltip.height
-        visible: checkWifi.stdout.text.trim() === "up" ? (wifiHoverHandler.hovered ? true : false) : false
-        color: colorBg
-        Rectangle {
-            id: wifiTooltip
-            color: color0
-            width: childrenRect.width
-            height: childrenRect.height
-            Text {
-                id: wifiTooltipText
-                font {
-                    family: fontFamily
-                    pixelSize: fontSize
-                }
-                color: colorFg
-                text: tray.y + wifi.parent.y
-            }
-        }
-        Process {
-            id: getSSID
-            running: true
-            command: ["sh", "-c", `nmcli -t -f active,ssid dev wifi | grep '^yes' | cut -d: -f2`]
-            stdout: StdioCollector {
-                onStreamFinished: wifiTooltipText.text = "Network: " + text
-            }
-        }
-        Timer {
-            interval: 1000
-            running: true
-            repeat: true
-            onTriggered: getSSID.running = true
         }
     }
 }
