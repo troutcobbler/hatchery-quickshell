@@ -139,54 +139,73 @@ ShellRoot {
                 anchors.horizontalCenter: parent.horizontalCenter
 
                 // Battery
-                Text {
-                    id: battery
-                    text: laptop ? (checkBattery.stdout.text.trim() <= 30 ? icons[7] : icons[8]) : icons[8]
+                Column {
+                    width: tray.width
+                    spacing: 5
                     anchors.horizontalCenter: parent.horizontalCenter
-                    color: laptop ? (checkBattery.stdout.text.trim() <= 30 ? color1 : color4) : color4
-                    font {
-                        family: fontFamily
-                        pixelSize: fontSize
+                    HoverHandler {
+                        id: batteryHoverHandler
                     }
-                    Process {
-                        id: checkBattery
-                        running: laptop ? true : false
-                        command: ["sh", "-c", `cat /sys/class/power_supply/BAT0/capacity`]
-                        stdout: StdioCollector {}
-                    }
-                    Timer {
-                        interval: 1000
-                        running: laptop ? true : false
-                        repeat: laptop ? true : false
-                        onTriggered: laptop ? checkBattery.running = true : checkBattery.running = false
+
+                    Text {
+                        id: battery
+                        text: laptop ? (checkBattery.stdout.text.trim() <= 30 ? icons[7] : icons[8]) : icons[8]
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        color: laptop ? (checkBattery.stdout.text.trim() <= 30 ? color1 : color4) : color4
+                        font {
+                            family: fontFamily
+                            pixelSize: fontSize
+                        }
+                        Process {
+                            id: checkBattery
+                            running: laptop ? true : false
+                            command: ["sh", "-c", `cat /sys/class/power_supply/BAT0/capacity`]
+                            stdout: StdioCollector {
+                                onStreamFinished: batteryTooltipText.text = "Battery: " + text + "%"
+                            }
+                        }
+                        Timer {
+                            interval: 1000
+                            running: laptop ? true : false
+                            repeat: laptop ? true : false
+                            onTriggered: laptop ? checkBattery.running = true : checkBattery.running = false
+                        }
                     }
                 }
 
                 // Wifi
-                Text {
-                    id: wifi
-                    text: checkWifi.stdout.text.trim() === "up" ? icons[10] : icons[9]
+                Column {
+                    width: tray.width
+                    spacing: 5
                     anchors.horizontalCenter: parent.horizontalCenter
-                    color: color5
-                    font {
-                        family: fontFamily
-                        pixelSize: fontSize
+                    HoverHandler {
+                        id: wifiHoverHandler
                     }
-                    MouseArea {
-                        anchors.fill: parent
-                        onClicked: Quickshell.execDetached(wifiCmd)
-                    }
-                    Process {
-                        id: checkWifi
-                        running: true
-                        command: ["sh", "-c", `cat /sys/class/net/w*/operstate`]
-                        stdout: StdioCollector {}
-                    }
-                    Timer {
-                        interval: 1000
-                        running: true
-                        repeat: true
-                        onTriggered: checkWifi.running = true
+                    Text {
+                        id: wifi
+                        text: checkWifi.stdout.text.trim() === "up" ? icons[10] : icons[9]
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        color: color5
+                        font {
+                            family: fontFamily
+                            pixelSize: fontSize
+                        }
+                        MouseArea {
+                            anchors.fill: parent
+                            onClicked: Quickshell.execDetached(wifiCmd)
+                        }
+                        Process {
+                            id: checkWifi
+                            running: true
+                            command: ["sh", "-c", `cat /sys/class/net/w*/operstate`]
+                            stdout: StdioCollector {}
+                        }
+                        Timer {
+                            interval: 1000
+                            running: true
+                            repeat: true
+                            onTriggered: checkWifi.running = true
+                        }
                     }
                 }
 
@@ -954,6 +973,8 @@ ShellRoot {
             }
         }
     }
+
+    // Desktop widgets
     PanelWindow {
         id: background
         WlrLayershell.layer: WlrLayer.Background
@@ -965,11 +986,14 @@ ShellRoot {
             right: true
         }
 
+        // Desktop background color
         Rectangle {
             width: parent.width
             height: parent.height
             color: colorBg
         }
+
+        // Logo
         Image {
             id: logo
             anchors.verticalCenter: parent.verticalCenter
@@ -980,6 +1004,8 @@ ShellRoot {
             height: 65
             visible: true
         }
+
+        //Wonky (conky replacement)
         Rectangle {
             id: wonky
             anchors.top: parent.top
@@ -1089,6 +1115,72 @@ ShellRoot {
             function toggleWonky(): bool {
                 wonky.visible = wonky.visible ? false : true;
             }
+        }
+    }
+
+    // Battery tooltip
+    PopupWindow {
+        anchor.window: bar
+        anchor.rect.x: bar.width + 5
+        anchor.rect.y: tray.y + battery.parent.y
+        implicitWidth: batteryTooltip.width
+        implicitHeight: batteryTooltip.height
+        visible: laptop ? (batteryHoverHandler.hovered ? true : false) : false
+        color: colorBg
+        Rectangle {
+            id: batteryTooltip
+            color: color0
+            width: childrenRect.width
+            height: childrenRect.height
+            Text {
+                id: batteryTooltipText
+                font {
+                    family: fontFamily
+                    pixelSize: fontSize
+                }
+                color: colorFg
+                text: tray.y + battery.parent.y
+            }
+        }
+    }
+
+    // Wifi tooltip
+    PopupWindow {
+        anchor.window: bar
+        anchor.rect.x: bar.width + 5
+        anchor.rect.y: tray.y + wifi.parent.y
+        implicitWidth: wifiTooltip.width
+        implicitHeight: wifiTooltip.height
+        visible: checkWifi.stdout.text.trim() === "up" ? (wifiHoverHandler.hovered ? true : false) : false
+        color: colorBg
+        Rectangle {
+            id: wifiTooltip
+            color: color0
+            width: childrenRect.width
+            height: childrenRect.height
+            Text {
+                id: wifiTooltipText
+                font {
+                    family: fontFamily
+                    pixelSize: fontSize
+                }
+                color: colorFg
+                text: tray.y + wifi.parent.y
+            }
+        }
+        Process {
+            id: getSSID
+            running: true
+            command: ["sh", "-c", `nmcli -t -f active,ssid dev wifi | grep '^yes' | cut -d: -f2`]
+            stdout: StdioCollector {
+                onStreamFinished: wifiTooltipText.text = "Network: " + text
+            }
+        }
+        Timer {
+            interval: 1000
+            running: true
+            repeat: true
+            onTriggered: getSSID.running = true
         }
     }
 }
