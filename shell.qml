@@ -61,6 +61,7 @@ ShellRoot {
     // Desktop widgets
     PanelWindow {
         id: background
+        visible: true
         WlrLayershell.layer: WlrLayer.Background
 
         anchors {
@@ -72,6 +73,7 @@ ShellRoot {
 
         // Desktop background color
         Rectangle {
+            visible: true
             width: parent.width
             height: parent.height
             color: colorBg
@@ -80,18 +82,19 @@ ShellRoot {
         // Logo
         Image {
             id: logo
+            visible: true
             anchors.verticalCenter: parent.verticalCenter
             anchors.horizontalCenter: parent.horizontalCenter
             anchors.horizontalCenterOffset: -bar.width / 2
-            source: "root:hatchery.svg"
+            source: "/usr/share/backgrounds/hatchery/hatchery.svg"
             width: 350
             height: 65
-            visible: true
         }
 
         //Wonky (conky replacement)
         Rectangle {
             id: wonky
+            visible: true
             anchors.top: parent.top
             anchors.right: parent.right
             anchors.topMargin: 60
