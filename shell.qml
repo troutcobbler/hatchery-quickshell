@@ -57,6 +57,8 @@ ShellRoot {
     // Wonky settings (conky replacement)
     property string wonkyFontFamily: "hack"
     property int wonkyFontSize: 16
+    property color wonkyColor: "#808080"
+
 
     // Bind the pipewire node so its volume will be tracked
     PwObjectTracker {
@@ -114,7 +116,7 @@ ShellRoot {
                             family: wonkyFontFamily
                             pixelSize: wonkyFontSize
                         }
-                        color: "#808080"
+                        color: wonkyColor
                         text: "BASIC NAVIGATION"
                     }
                 }
@@ -124,7 +126,7 @@ ShellRoot {
                             family: wonkyFontFamily
                             pixelSize: wonkyFontSize
                         }
-                        color: "#808080"
+                        color: wonkyColor
                         text: " "
                     }
                 }
@@ -134,7 +136,7 @@ ShellRoot {
                             family: wonkyFontFamily
                             pixelSize: wonkyFontSize
                         }
-                        color: "#808080"
+                        color: wonkyColor
                         text: "ALT+P            run command"
                     }
                 }
@@ -144,7 +146,7 @@ ShellRoot {
                             family: wonkyFontFamily
                             pixelSize: wonkyFontSize
                         }
-                        color: "#808080"
+                        color: wonkyColor
                         text: "ALT+SHIFT+ENTER  open terminal"
                     }
                 }
@@ -154,7 +156,7 @@ ShellRoot {
                             family: wonkyFontFamily
                             pixelSize: wonkyFontSize
                         }
-                        color: "#808080"
+                        color: wonkyColor
                         text: "ALT+Q            close window"
                     }
                 }
@@ -164,7 +166,7 @@ ShellRoot {
                             family: wonkyFontFamily
                             pixelSize: wonkyFontSize
                         }
-                        color: "#808080"
+                        color: wonkyColor
                         text: "ALT+1-6          switch between workspaces"
                     }
                 }
@@ -174,7 +176,7 @@ ShellRoot {
                             family: wonkyFontFamily
                             pixelSize: wonkyFontSize
                         }
-                        color: "#808080"
+                        color: wonkyColor
                         text: "ALT+SHIFT+1-6    move window to workspace"
                     }
                 }
@@ -184,7 +186,7 @@ ShellRoot {
                             family: wonkyFontFamily
                             pixelSize: wonkyFontSize
                         }
-                        color: "#808080"
+                        color: wonkyColor
                         text: "ALT+F12          show/hide this dialog"
                     }
                 }
@@ -194,7 +196,7 @@ ShellRoot {
                             family: wonkyFontFamily
                             pixelSize: wonkyFontSize
                         }
-                        color: "#808080"
+                        color: wonkyColor
                         text: "ALT+SHIFT+Q      logout"
                     }
                 }
