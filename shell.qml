@@ -46,13 +46,17 @@ ShellRoot {
     property list<string> logoutCmd: ["hyprctl", "dispatch", "exit"]
     property list<string> lockCmd: ["swaylock", "-f", "-c", "000000"]
     property list<string> poweroffCmd: ["systemctl", "poweroff"]
-    property list<string> powermenuCmd
+    property list<string> installCmd: ["sudo", "-EH", "calamares"]
 
     // Workstation type (set to true or false if it's a laptop)
     property bool laptop: false
 
     // Max Brightness setting (get from brightnessctl in terminal)
     property int maxBrightness: 255
+
+    // Wonky settings (conky replacement)
+    property string wonkyFontFamily: "hack"
+    property int wonkyFontSize: 16
 
     // Bind the pipewire node so its volume will be tracked
     PwObjectTracker {
@@ -107,8 +111,8 @@ ShellRoot {
                 Row {
                     Text {
                         font {
-                            family: "hack"
-                            pixelSize: 16
+                            family: wonkyFontFamily
+                            pixelSize: wonkyFontSize
                         }
                         color: "#808080"
                         text: "BASIC NAVIGATION"
@@ -117,8 +121,8 @@ ShellRoot {
                 Row {
                     Text {
                         font {
-                            family: "hack"
-                            pixelSize: 16
+                            family: wonkyFontFamily
+                            pixelSize: wonkyFontSize
                         }
                         color: "#808080"
                         text: " "
@@ -127,8 +131,8 @@ ShellRoot {
                 Row {
                     Text {
                         font {
-                            family: "hack"
-                            pixelSize: 16
+                            family: wonkyFontFamily
+                            pixelSize: wonkyFontSize
                         }
                         color: "#808080"
                         text: "ALT+P            run command"
@@ -137,8 +141,8 @@ ShellRoot {
                 Row {
                     Text {
                         font {
-                            family: "hack"
-                            pixelSize: 16
+                            family: wonkyFontFamily
+                            pixelSize: wonkyFontSize
                         }
                         color: "#808080"
                         text: "ALT+SHIFT+ENTER  open terminal"
@@ -147,8 +151,8 @@ ShellRoot {
                 Row {
                     Text {
                         font {
-                            family: "hack"
-                            pixelSize: 16
+                            family: wonkyFontFamily
+                            pixelSize: wonkyFontSize
                         }
                         color: "#808080"
                         text: "ALT+Q            close window"
@@ -157,8 +161,8 @@ ShellRoot {
                 Row {
                     Text {
                         font {
-                            family: "hack"
-                            pixelSize: 16
+                            family: wonkyFontFamily
+                            pixelSize: wonkyFontSize
                         }
                         color: "#808080"
                         text: "ALT+1-6          switch between workspaces"
@@ -167,8 +171,8 @@ ShellRoot {
                 Row {
                     Text {
                         font {
-                            family: "hack"
-                            pixelSize: 16
+                            family: wonkyFontFamily
+                            pixelSize: wonkyFontSize
                         }
                         color: "#808080"
                         text: "ALT+SHIFT+1-6    move window to workspace"
@@ -177,8 +181,8 @@ ShellRoot {
                 Row {
                     Text {
                         font {
-                            family: "hack"
-                            pixelSize: 16
+                            family: wonkyFontFamily
+                            pixelSize: wonkyFontSize
                         }
                         color: "#808080"
                         text: "ALT+F12          show/hide this dialog"
@@ -187,8 +191,8 @@ ShellRoot {
                 Row {
                     Text {
                         font {
-                            family: "hack"
-                            pixelSize: 16
+                            family: wonkyFontFamily
+                            pixelSize: wonkyFontSize
                         }
                         color: "#808080"
                         text: "ALT+SHIFT+Q      logout"
@@ -574,10 +578,12 @@ ShellRoot {
                 MouseArea {
                     anchors.fill: parent
                     onClicked: {
-                        powermenuPopupText.text = "Suspend this computer?";
-                        powermenuPopupConfirm.color = color2;
-                        powermenuCmd = suspendCmd;
-                        powermenuPopup.visible ? powermenuPopup.visible = false : powermenuPopup.visible = true;
+                        popupWindowText.text = "Suspend this computer?";
+                        popupWindowConfirm.text = "SUSPEND";
+                        popupWindowCancel.text = "CANCEL";
+                        popupWindowConfirm.color = color2;
+                        installCmd = suspendCmd;
+                        popupWindow.visible ? popupWindow.visible = false : popupWindow.visible = true;
                     }
                 }
             }
@@ -595,10 +601,12 @@ ShellRoot {
                 MouseArea {
                     anchors.fill: parent
                     onClicked: {
-                        powermenuPopupText.text = "Reboot this computer?";
-                        powermenuPopupConfirm.color = color3;
-                        powermenuCmd = rebootCmd;
-                        powermenuPopup.visible ? powermenuPopup.visible = false : powermenuPopup.visible = true;
+                        popupWindowText.text = "Reboot this computer?";
+                        popupWindowConfirm.text = "REBOOT";
+                        popupWindowCancel.text = "CANCEL";
+                        popupWindowConfirm.color = color3;
+                        installCmd = rebootCmd;
+                        popupWindow.visible ? popupWindow.visible = false : popupWindow.visible = true;
                     }
                 }
             }
@@ -616,10 +624,12 @@ ShellRoot {
                 MouseArea {
                     anchors.fill: parent
                     onClicked: {
-                        powermenuPopupText.text = "Logout of this computer?";
-                        powermenuPopupConfirm.color = color5;
-                        powermenuCmd = logoutCmd;
-                        powermenuPopup.visible ? powermenuPopup.visible = false : powermenuPopup.visible = true;
+                        popupWindowText.text = "Logout of this computer?";
+                        popupWindowConfirm.text = "LOGOUT";
+                        popupWindowCancel.text = "CANCEL";
+                        popupWindowConfirm.color = color5;
+                        installCmd = logoutCmd;
+                        popupWindow.visible ? popupWindow.visible = false : popupWindow.visible = true;
                     }
                 }
             }
@@ -652,10 +662,12 @@ ShellRoot {
                 MouseArea {
                     anchors.fill: parent
                     onClicked: {
-                        powermenuPopupText.text = "Poweroff this computer?";
-                        powermenuPopupConfirm.color = color1;
-                        powermenuCmd = poweroffCmd;
-                        powermenuPopup.visible ? powermenuPopup.visible = false : powermenuPopup.visible = true;
+                        popupWindowText.text = "Poweroff this computer?";
+                        popupWindowConfirm.text = "POWEROFF";
+                        popupWindowCancel.text = "CANCEL";
+                        popupWindowConfirm.color = color1;
+                        installCmd = poweroffCmd;
+                        popupWindow.visible ? popupWindow.visible = false : popupWindow.visible = true;
                     }
                 }
             }
@@ -892,9 +904,9 @@ ShellRoot {
             }
         }
 
-        // Power Menu Popup
+        // Popup Window
         PopupWindow {
-            id: powermenuPopup
+            id: popupWindow
             anchor.window: bar
             anchor.rect.x: screen.width / 2 - (width / 2)
             anchor.rect.y: screen.height / 2 - (height / 2)
@@ -904,7 +916,7 @@ ShellRoot {
             color: colorBg
 
             Text {
-                id: powermenuPopupText
+                id: popupWindowText
                 anchors.top: parent.top
                 anchors.horizontalCenter: parent.horizontalCenter
                 anchors.topMargin: 25
@@ -913,6 +925,7 @@ ShellRoot {
                     family: fontFamily
                     pixelSize: fontSize
                 }
+                text: "Install now or explore the live-session?"
             }
 
             Rectangle {
@@ -926,6 +939,7 @@ ShellRoot {
                 color: color0
 
                 Text {
+                    id: popupWindowCancel
                     anchors.verticalCenter: parent.verticalCenter
                     anchors.horizontalCenter: parent.horizontalCenter
                     color: colorFg
@@ -933,11 +947,11 @@ ShellRoot {
                         family: fontFamily
                         pixelSize: fontSize
                     }
-                    text: "CANCEL"
+                    text: "LIVE"
                 }
                 MouseArea {
                     anchors.fill: parent
-                    onClicked: powermenuPopup.visible = false
+                    onClicked: popupWindow.visible = false
                 }
             }
 
@@ -952,21 +966,21 @@ ShellRoot {
                 color: color0
 
                 Text {
-                    id: powermenuPopupConfirm
+                    id: popupWindowConfirm
                     anchors.verticalCenter: parent.verticalCenter
                     anchors.horizontalCenter: parent.horizontalCenter
-                    color: color1
+                    color: colorFg
                     font {
                         family: fontFamily
                         pixelSize: fontSize
                     }
-                    text: "YES"
+                    text: "INSTALL"
                 }
                 MouseArea {
                     anchors.fill: parent
                     onClicked: {
-                        powermenuPopup.visible = false;
-                        Quickshell.execDetached(powermenuCmd);
+                        popupWindow.visible = false;
+                        Quickshell.execDetached(installCmd);
                     }
                 }
             }
