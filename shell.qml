@@ -46,6 +46,7 @@ ShellRoot {
     property list<string> logoutCmd: ["hyprctl", "dispatch", "exit"]
     property list<string> lockCmd: ["swaylock", "-f", "-c", "000000"]
     property list<string> poweroffCmd: ["systemctl", "poweroff"]
+    property list<string> powermenuCmd
 
     // Workstation type (set to true or false if it's a laptop)
     property bool laptop: false
@@ -572,7 +573,12 @@ ShellRoot {
                 }
                 MouseArea {
                     anchors.fill: parent
-                    onClicked: suspendPopup.visible ? suspendPopup.visible = false : suspendPopup.visible = true
+                    onClicked: {
+                        powermenuPopupText.text = "Suspend this computer?";
+                        powermenuPopupConfirm.color = color2;
+                        powermenuCmd = suspendCmd;
+                        powermenuPopup.visible ? powermenuPopup.visible = false : powermenuPopup.visible = true;
+                    }
                 }
             }
 
@@ -588,7 +594,12 @@ ShellRoot {
                 }
                 MouseArea {
                     anchors.fill: parent
-                    onClicked: rebootPopup.visible ? rebootPopup.visible = false : rebootPopup.visible = true
+                    onClicked: {
+                        powermenuPopupText.text = "Reboot this computer?";
+                        powermenuPopupConfirm.color = color3;
+                        powermenuCmd = rebootCmd;
+                        powermenuPopup.visible ? powermenuPopup.visible = false : powermenuPopup.visible = true;
+                    }
                 }
             }
 
@@ -604,7 +615,12 @@ ShellRoot {
                 }
                 MouseArea {
                     anchors.fill: parent
-                    onClicked: logoutPopup.visible ? logoutPopup.visible = false : logoutPopup.visible = true
+                    onClicked: {
+                        powermenuPopupText.text = "Logout of this computer?";
+                        powermenuPopupConfirm.color = color5;
+                        powermenuCmd = logoutCmd;
+                        powermenuPopup.visible ? powermenuPopup.visible = false : powermenuPopup.visible = true;
+                    }
                 }
             }
 
@@ -635,7 +651,12 @@ ShellRoot {
                 }
                 MouseArea {
                     anchors.fill: parent
-                    onClicked: poweroffPopup.visible ? poweroffPopup.visible = false : poweroffPopup.visible = true
+                    onClicked: {
+                        powermenuPopupText.text = "Poweroff this computer?";
+                        powermenuPopupConfirm.color = color1;
+                        powermenuCmd = poweroffCmd;
+                        powermenuPopup.visible ? powermenuPopup.visible = false : powermenuPopup.visible = true;
+                    }
                 }
             }
         }
@@ -869,88 +890,9 @@ ShellRoot {
             }
         }
 
-        // Suspend
+        // Power Menu Popup
         PopupWindow {
-            id: suspendPopup
-            anchor.window: bar
-            anchor.rect.x: screen.width / 2 - (width / 2)
-            anchor.rect.y: screen.height / 2 - (height / 2)
-            implicitWidth: 480
-            implicitHeight: 129
-            visible: false
-            color: colorBg
-
-            Text {
-                anchors.top: parent.top
-                anchors.horizontalCenter: parent.horizontalCenter
-                anchors.topMargin: 25
-                color: colorFg
-                font {
-                    family: fontFamily
-                    pixelSize: fontSize
-                }
-                text: "Suspend this computer?"
-            }
-
-            Rectangle {
-                anchors.bottom: parent.bottom
-                anchors.left: parent.left
-                anchors.bottomMargin: 15
-                anchors.leftMargin: 35
-                width: 190
-                height: 35
-                radius: 5
-                color: color0
-
-                Text {
-                    anchors.verticalCenter: parent.verticalCenter
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    color: colorFg
-                    font {
-                        family: fontFamily
-                        pixelSize: fontSize
-                    }
-                    text: "CANCEL"
-                }
-                MouseArea {
-                    anchors.fill: parent
-                    onClicked: suspendPopup.visible = false
-                }
-            }
-
-            Rectangle {
-                anchors.bottom: parent.bottom
-                anchors.right: parent.right
-                anchors.bottomMargin: 15
-                anchors.rightMargin: 35
-                width: 190
-                height: 35
-                radius: 5
-                color: color0
-
-                Text {
-                    anchors.verticalCenter: parent.verticalCenter
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    color: color2
-                    font {
-                        family: fontFamily
-                        pixelSize: fontSize
-                    }
-                    text: "YES"
-                }
-                MouseArea {
-                    anchors.fill: parent
-                    onClicked: {
-                        suspendPopup.visible = false;
-                        Quickshell.execDetached(suspendCmd);
-                    }
-                }
-            }
-        }
-
-        // Reboot
-        PopupWindow {
-            id: rebootPopup
+            id: powermenuPopup
             anchor.window: bar
             anchor.rect.x: screen.width / 2 - (width / 2)
             anchor.rect.y: screen.height / 2 - (height / 2)
@@ -960,6 +902,7 @@ ShellRoot {
             color: colorBg
 
             Text {
+                id: powermenuPopupText
                 anchors.top: parent.top
                 anchors.horizontalCenter: parent.horizontalCenter
                 anchors.topMargin: 25
@@ -968,7 +911,6 @@ ShellRoot {
                     family: fontFamily
                     pixelSize: fontSize
                 }
-                text: "Reboot this computer?"
             }
 
             Rectangle {
@@ -993,7 +935,7 @@ ShellRoot {
                 }
                 MouseArea {
                     anchors.fill: parent
-                    onClicked: rebootPopup.visible = false
+                    onClicked: powermenuPopup.visible = false
                 }
             }
 
@@ -1008,164 +950,7 @@ ShellRoot {
                 color: color0
 
                 Text {
-                    anchors.verticalCenter: parent.verticalCenter
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    color: color3
-                    font {
-                        family: fontFamily
-                        pixelSize: fontSize
-                    }
-                    text: "YES"
-                }
-                MouseArea {
-                    anchors.fill: parent
-                    onClicked: {
-                        rebootPopup.visible = false;
-                        Quickshell.execDetached(rebootCmd);
-                    }
-                }
-            }
-        }
-
-        // Logout
-        PopupWindow {
-            id: logoutPopup
-            anchor.window: bar
-            anchor.rect.x: screen.width / 2 - (width / 2)
-            anchor.rect.y: screen.height / 2 - (height / 2)
-            implicitWidth: 480
-            implicitHeight: 120
-            visible: false
-            color: colorBg
-
-            Text {
-                anchors.top: parent.top
-                anchors.horizontalCenter: parent.horizontalCenter
-                anchors.topMargin: 25
-                color: colorFg
-                font {
-                    family: fontFamily
-                    pixelSize: fontSize
-                }
-                text: "Logout of this computer?"
-            }
-
-            Rectangle {
-                anchors.bottom: parent.bottom
-                anchors.left: parent.left
-                anchors.bottomMargin: 15
-                anchors.leftMargin: 35
-                width: 190
-                height: 35
-                radius: 5
-                color: color0
-
-                Text {
-                    anchors.verticalCenter: parent.verticalCenter
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    color: colorFg
-                    font {
-                        family: fontFamily
-                        pixelSize: fontSize
-                    }
-                    text: "CANCEL"
-                }
-                MouseArea {
-                    anchors.fill: parent
-                    onClicked: logoutPopup.visible = false
-                }
-            }
-
-            Rectangle {
-                anchors.bottom: parent.bottom
-                anchors.right: parent.right
-                anchors.bottomMargin: 15
-                anchors.rightMargin: 35
-                width: 190
-                height: 35
-                radius: 5
-                color: color0
-
-                Text {
-                    anchors.verticalCenter: parent.verticalCenter
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    color: color5
-                    font {
-                        family: fontFamily
-                        pixelSize: fontSize
-                    }
-                    text: "YES"
-                }
-                MouseArea {
-                    anchors.fill: parent
-                    onClicked: {
-                        logoutPopup.visible = false;
-                        Quickshell.execDetached(logoutCmd);
-                    }
-                }
-            }
-        }
-
-        // Poweroff
-        PopupWindow {
-            id: poweroffPopup
-            anchor.window: bar
-            anchor.rect.x: screen.width / 2 - (width / 2)
-            anchor.rect.y: screen.height / 2 - (height / 2)
-            implicitWidth: 480
-            implicitHeight: 120
-            visible: false
-            color: colorBg
-
-            Text {
-                anchors.top: parent.top
-                anchors.horizontalCenter: parent.horizontalCenter
-                anchors.topMargin: 25
-                color: colorFg
-                font {
-                    family: fontFamily
-                    pixelSize: fontSize
-                }
-                text: "Poweroff this computer?"
-            }
-
-            Rectangle {
-                anchors.bottom: parent.bottom
-                anchors.left: parent.left
-                anchors.bottomMargin: 15
-                anchors.leftMargin: 35
-                width: 190
-                height: 35
-                radius: 5
-                color: color0
-
-                Text {
-                    anchors.verticalCenter: parent.verticalCenter
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    color: colorFg
-                    font {
-                        family: fontFamily
-                        pixelSize: fontSize
-                    }
-                    text: "CANCEL"
-                }
-                MouseArea {
-                    anchors.fill: parent
-                    onClicked: poweroffPopup.visible = false
-                }
-            }
-
-            Rectangle {
-                anchors.bottom: parent.bottom
-                anchors.right: parent.right
-                anchors.bottomMargin: 15
-                anchors.rightMargin: 35
-                width: 190
-                height: 35
-                radius: 5
-                color: color0
-
-                Text {
+                    id: powermenuPopupConfirm
                     anchors.verticalCenter: parent.verticalCenter
                     anchors.horizontalCenter: parent.horizontalCenter
                     color: color1
@@ -1178,8 +963,8 @@ ShellRoot {
                 MouseArea {
                     anchors.fill: parent
                     onClicked: {
-                        poweroffPopup.visible = false;
-                        Quickshell.execDetached(poweroffCmd);
+                        powermenuPopup.visible = false;
+                        Quickshell.execDetached(powermenuCmd);
                     }
                 }
             }
