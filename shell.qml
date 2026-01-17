@@ -682,6 +682,7 @@ ShellRoot {
                         pixelSize: fontSize
                     }
                     color: colorFg
+                    text: "Battery:"
                 }
             }
         }
@@ -707,6 +708,7 @@ ShellRoot {
                         pixelSize: fontSize
                     }
                     color: colorFg
+                    text: "Network:"
                 }
             }
             Process {
