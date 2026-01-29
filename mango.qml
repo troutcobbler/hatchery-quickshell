@@ -240,47 +240,23 @@ ShellRoot {
 
         // Workspaces
         Process {
-            id: getActive
+            id: mmsg
             running: true
-            command: ["sh", "-c", `mmsg -g -t | tail -n 1 | awk '{print $4}'`]
-            stdout: StdioCollector {
-                onStreamFinished: {
+            command: ["mmsg", "-w"]
+
+            stdout: SplitParser {
+                onRead: line => {
                     function reverseString(str) {
                         let charArray = str.split('');
                         return charArray.reverse();
                     }
-                    workspaces.active = reverseString(text.trim());
-                }
-            }
-        }
 
-        Timer {
-            interval: 100
-            running: true
-            repeat: true
-            onTriggered: getActive.running = true
-        }
-
-        Process {
-            id: getOccupied
-            running: true
-            command: ["sh", "-c", `mmsg -g -t | tail -n 1 | awk '{print $3}'`]
-            stdout: StdioCollector {
-                onStreamFinished: {
-                    function reverseString(str) {
-                        let charArray = str.split('');
-                        return charArray.reverse();
+                    if (line.match(/^(\S+)\s+tags\s+([01]+)\s+([01]+)\s+([01]+)$/)) {
+                        workspaces.occupied = reverseString(line.split(/\s+/)[2]);
+                        workspaces.active = reverseString(line.split(/\s+/)[3]);
                     }
-                    workspaces.occupied = reverseString(text.trim());
                 }
             }
-        }
-
-        Timer {
-            interval: 100
-            running: true
-            repeat: true
-            onTriggered: getOccupied.running = true
         }
 
         Rectangle {
@@ -1028,23 +1004,6 @@ ShellRoot {
                         popupWindow.visible = false;
                         Quickshell.execDetached(installCmd);
                     }
-                }
-            }
-        }
-    }
-
-    // New workspace module (in progress)
-    readonly property var lastLine: /^(\S+)\s+tags\s+([01]+)\s+([01]+)\s+([01]+)$/
-
-    Process {
-        id: mmsg
-        running: true
-        command: ["mmsg", "-w"]
-
-        stdout: SplitParser {
-            onRead: line => {
-                if (line.match(lastLine)) {
-                    console.log(line);
                 }
             }
         }
