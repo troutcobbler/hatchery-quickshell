@@ -1032,4 +1032,21 @@ ShellRoot {
             }
         }
     }
+
+    // New workspace module (in progress)
+    readonly property var lastLine: /^(\S+)\s+tags\s+([01]+)\s+([01]+)\s+([01]+)$/
+
+    Process {
+        id: mmsg
+        running: true
+        command: ["mmsg", "-w"]
+
+        stdout: SplitParser {
+            onRead: line => {
+                if (line.match(lastLine)) {
+                    console.log(line);
+                }
+            }
+        }
+    }
 }
