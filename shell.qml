@@ -1,6 +1,7 @@
 import Quickshell
 import Quickshell.Wayland
 import Quickshell.Io
+import Quickshell.Hyprland
 import Quickshell.Services.Pipewire
 import QtQuick
 import QtQuick.Layouts
@@ -42,7 +43,7 @@ ShellRoot {
     property list<string> volumeCmd: ["pavucontrol"]
     property list<string> suspendCmd: ["sh", "-c", `systemctl suspend && swaylock -f -c 000000`]
     property list<string> rebootCmd: ["systemctl", "reboot"]
-    property list<string> logoutCmd: ["mmsg", "-d", "quit"]
+    property list<string> logoutCmd: ["hyprctl", "dispatch", "exit"]
     property list<string> lockCmd: ["swaylock", "-f", "-c", "000000"]
     property list<string> poweroffCmd: ["systemctl", "poweroff"]
     property list<string> installCmd: ["sudo", "-EH", "calamares"]
@@ -57,6 +58,7 @@ ShellRoot {
     property string wonkyFontFamily: "hack"
     property int wonkyFontSize: 16
     property color wonkyColor: "#808080"
+
 
     // Bind the pipewire node so its volume will be tracked
     PwObjectTracker {
@@ -239,26 +241,6 @@ ShellRoot {
         }
 
         // Workspaces
-        Process {
-            id: mmsg
-            running: true
-            command: ["mmsg", "-w"]
-
-            stdout: SplitParser {
-                onRead: line => {
-                    function reverseString(str) {
-                        let charArray = str.split('');
-                        return charArray.reverse();
-                    }
-
-                    if (line.match(/^(\S+)\s+tags\s+([01]+)\s+([01]+)\s+([01]+)$/)) {
-                        workspaces.occupied = reverseString(line.split(/\s+/)[2]);
-                        workspaces.active = reverseString(line.split(/\s+/)[3]);
-                    }
-                }
-            }
-        }
-
         Rectangle {
             radius: 5
             Layout.fillWidth: true
@@ -273,23 +255,21 @@ ShellRoot {
                 padding: 5
                 spacing: 5
                 anchors.horizontalCenter: parent.horizontalCenter
-
                 Repeater {
-                    id: workspaces
                     model: 6
-                    property list<string> active: ["0"]
-                    property list<string> occupied: ["0"]
                     Text {
                         anchors.horizontalCenter: parent.horizontalCenter
+                        property var ws: Hyprland.workspaces.values.find(w => w.id === index + 1)
+                        property bool isActive: Hyprland.focusedWorkspace?.id === (index + 1)
                         text: icons[index]
-                        color: workspaces.active[index] == 1 ? colorFg : (workspaces.occupied[index] == 1 ? colorFg : color8)
+                        color: isActive ? colorFg : (ws ? colorFg : color8)
                         font {
                             family: fontFamily
                             pixelSize: fontSize
                         }
                         MouseArea {
                             anchors.fill: parent
-                            onClicked: Quickshell.execDetached(["mmsg", "-s", "-t", index + 1])
+                            onClicked: Hyprland.dispatch("workspace " + (index + 1))
                         }
                     }
                 }
