@@ -49,7 +49,7 @@ ShellRoot {
     property list<string> installCmd: ["sudo", "-EH", "calamares"]
 
     // Workstation type (set to true or false if it's a laptop)
-    property bool laptop: false
+    property bool laptop: true
 
     // Max Brightness setting (get from brightnessctl in terminal)
     property int maxBrightness: 255
